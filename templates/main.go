@@ -11,11 +11,11 @@ type Curso struct {
 }
 
 func main() {
-	curso := Curso{Name: "Go", ClassTime: 40}
-	tmp := template.New("CursoTemplate")
-	tmp, _ = tmp.Parse("Curso: {{.Name}}, Carge Horaria: {{.ClassTime}}")
+	curso := Curso{"Go", 40}
 
-	err := tmp.Execute(os.Stdout, curso)
+	t := template.Must(template.New("CursoTemplate").Parse("Curso: {{.Name}}, Carge Horaria: {{.ClassTime}}"))
+
+	err := t.Execute(os.Stdout, curso)
 	if err != nil {
 		panic(err)
 	}
