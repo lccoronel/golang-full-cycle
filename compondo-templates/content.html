@@ -10,7 +10,7 @@
     <tbody>
         {{ range . }}
         <tr>
-            <td>{{ .Name }}</td>
+            <td>{{ .Name | ToUpper }}</td>
             <td>{{ .ClassTime }}</td>
         </tr>
         {{ end }}
