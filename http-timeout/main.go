@@ -1,24 +1,23 @@
 package main
 
 import (
-	"io/ioutil"
+	"bytes"
+	"io"
 	"net/http"
-	"time"
+	"os"
 )
 
 func main() {
-	api := http.Client{Timeout: time.Second}
+	api := http.Client{}
 
-	response, err := api.Get("http://google.com")
+	jsonVar := bytes.NewBuffer([]byte(`{"name": "lucas"}`))
+
+	response, err := api.Post("http://google.com", "application/json", jsonVar)
 	if err != nil {
 		panic(err)
 	}
 
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		panic(err)
-	}
-	println(string(body))
+	io.CopyBuffer(os.Stdout, response.Body, nil)
 }
