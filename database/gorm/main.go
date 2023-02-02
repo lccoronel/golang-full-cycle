@@ -8,8 +8,9 @@ import (
 )
 
 type Category struct {
-	ID   int `gorm:"primaryKey"`
-	Name string
+	ID       int `gorm:"primaryKey"`
+	Name     string
+	Products []Product
 }
 
 type Product struct {
@@ -56,23 +57,36 @@ func main() {
 	// database.Delete(&product)
 
 	// belongs to
-	category := Category{Name: "Eletornicos"}
-	database.Create(&category)
-	database.Create(&Product{
-		Name:       "Notebook",
-		Price:      1000.00,
-		CategoryID: category.ID,
-	})
-	database.Create(&SerialNumber{
-		Number:    "123456",
-		ProductID: 1,
-	})
+	// category := Category{Name: "Eletornicos"}
+	// database.Create(&category)
+	// database.Create(&Product{
+	// 	Name:       "Notebook",
+	// 	Price:      1000.00,
+	// 	CategoryID: category.ID,
+	// })
+	// database.Create(&SerialNumber{
+	// 	Number:    "123456",
+	// 	ProductID: 1,
+	// })
 
 	// find all
-	var products []Product
-	database.Preload("Category").Preload("SerialNumber").Find(&products)
-	for _, product := range products {
-		fmt.Println(product.Name, product.Category.Name, product.SerialNumber.Number)
+	// var products []Product
+	// database.Preload("Category").Preload("SerialNumber").Find(&products)
+	// for _, product := range products {
+	// 	fmt.Println(product.Name, product.Category.Name, product.SerialNumber.Number)
+	// }
+
+	var categories []Category
+	err = database.Model(&Category{}).Preload("Products").Find(&categories).Error
+	if err != nil {
+		panic(err)
 	}
 
+	for _, category := range categories {
+		fmt.Println(category.Name, ":")
+
+		for _, product := range category.Products {
+			println("- ", product.Name, category.Name)
+		}
+	}
 }
