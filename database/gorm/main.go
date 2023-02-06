@@ -77,7 +77,7 @@ func main() {
 	// }
 
 	var categories []Category
-	err = database.Model(&Category{}).Preload("Products").Find(&categories).Error
+	err = database.Model(&Category{}).Preload("Products.SerialNumber").Find(&categories).Error
 	if err != nil {
 		panic(err)
 	}
@@ -86,7 +86,7 @@ func main() {
 		fmt.Println(category.Name, ":")
 
 		for _, product := range category.Products {
-			println("- ", product.Name, category.Name)
+			println("- ", product.Name, "Serial Number:", product.SerialNumber.Number)
 		}
 	}
 }
