@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -10,7 +8,7 @@ import (
 type Category struct {
 	ID       int `gorm:"primaryKey"`
 	Name     string
-	Products []Product
+	Products []Product `gorm:"many2many:products_categories;`
 }
 
 type Product struct {
@@ -18,7 +16,7 @@ type Product struct {
 	Name         string
 	Price        float64
 	CategoryID   int
-	Category     Category
+	Category     []Category `gorm:"many2many:products_categories;`
 	SerialNumber SerialNumber
 	gorm.Model
 }
@@ -57,7 +55,7 @@ func main() {
 	// database.Delete(&product)
 
 	// belongs to
-	// category := Category{Name: "Eletornicos"}
+	category := Category{Name: "Eletornicos"}
 	// database.Create(&category)
 	// database.Create(&Product{
 	// 	Name:       "Notebook",
@@ -76,17 +74,26 @@ func main() {
 	// 	fmt.Println(product.Name, product.Category.Name, product.SerialNumber.Number)
 	// }
 
-	var categories []Category
-	err = database.Model(&Category{}).Preload("Products.SerialNumber").Find(&categories).Error
-	if err != nil {
-		panic(err)
-	}
+	category2 := Category{Name: "Cozinha"}
+	// database.Create(&category2)
 
-	for _, category := range categories {
-		fmt.Println(category.Name, ":")
+	database.Create(&Product{
+		Name:     "Panela",
+		Price:    99.0,
+		Category: []Category{category2, category},
+	})
 
-		for _, product := range category.Products {
-			println("- ", product.Name, "Serial Number:", product.SerialNumber.Number)
-		}
-	}
+	// var categories []Category
+	// err = database.Model(&Category{}).Preload("Products.SerialNumber").Find(&categories).Error
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// for _, category := range categories {
+	// 	fmt.Println(category.Name, ":")
+
+	// 	for _, product := range category.Products {
+	// 		println("- ", product.Name, "Serial Number:", product.SerialNumber.Number)
+	// 	}
+	// }
 }
