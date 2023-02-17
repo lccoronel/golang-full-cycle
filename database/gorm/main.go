@@ -3,6 +3,7 @@ package main
 import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Category struct {
@@ -35,7 +36,20 @@ func main() {
 		panic(err)
 	}
 
-	database.AutoMigrate(&Product{}, &Category{}, &SerialNumber{})
+	database.AutoMigrate(&Product{}, &Category{})
+
+	// Lock otimista - versionamento das linhas
+
+	// Lock pessimista - trava a linha que estiver sendo atualizada ate terminar a atualizacao
+	tx := database.Begin()
+	var c Category
+	err = tx.Debug().Clauses(clause.Locking{Strength: "UPDATE"}).First(&c, 1).Error
+	if err != nil {
+		panic(err)
+	}
+	c.Name = "Multimidia"
+	tx.Debug().Save(&c)
+	tx.Commit()
 
 	// create
 	// database.Create(&Product{
@@ -55,7 +69,7 @@ func main() {
 	// database.Delete(&product)
 
 	// belongs to
-	category := Category{Name: "Eletornicos"}
+	// category := Category{Name: "Eletornicos"}
 	// database.Create(&category)
 	// database.Create(&Product{
 	// 	Name:       "Notebook",
@@ -74,14 +88,14 @@ func main() {
 	// 	fmt.Println(product.Name, product.Category.Name, product.SerialNumber.Number)
 	// }
 
-	category2 := Category{Name: "Cozinha"}
+	// category2 := Category{Name: "Cozinha"}
 	// database.Create(&category2)
 
-	database.Create(&Product{
-		Name:     "Panela",
-		Price:    99.0,
-		Category: []Category{category2, category},
-	})
+	// database.Create(&Product{
+	// 	Name:     "Panela",
+	// 	Price:    99.0,
+	// 	Category: []Category{category2, category},
+	// })
 
 	// var categories []Category
 	// err = database.Model(&Category{}).Preload("Products.SerialNumber").Find(&categories).Error
