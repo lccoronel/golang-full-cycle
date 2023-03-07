@@ -1,7 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/lccoronel/intro-go-mod/math"
+)
 
 func main() {
-	fmt.Println("Hello world!")
+	m := math.Math{A: 2, B: 2}
+
+	fmt.Println(m.Add())
 }
