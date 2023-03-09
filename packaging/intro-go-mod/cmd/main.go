@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	m := math.Math{A: 2, B: 2}
+	m := math.NewMath(1, 2)
 
 	fmt.Println(m.Add())
 }
