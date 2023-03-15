@@ -22,6 +22,7 @@ func TestCalculateBatch(t *testing.T) {
 		{500.5, 5.0},
 		{1000.5, 10.0},
 		{1500.5, 10.0},
+		{0.0, 0.0},
 	}
 
 	for _, item := range table {
