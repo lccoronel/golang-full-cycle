@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/dto"
@@ -47,7 +48,6 @@ func (productHandler *ProductHandler) CreateProduct(response http.ResponseWriter
 
 func (productHandler *ProductHandler) GetProduct(response http.ResponseWriter, request *http.Request) {
 	id := chi.URLParam(request, "id")
-
 	if id == "" {
 		response.WriteHeader(http.StatusBadRequest)
 		return
@@ -66,7 +66,6 @@ func (productHandler *ProductHandler) GetProduct(response http.ResponseWriter, r
 
 func (productHandler *ProductHandler) UpdateProduct(response http.ResponseWriter, request *http.Request) {
 	id := chi.URLParam(request, "id")
-
 	if id == "" {
 		response.WriteHeader(http.StatusBadRequest)
 		return
@@ -99,4 +98,52 @@ func (productHandler *ProductHandler) UpdateProduct(response http.ResponseWriter
 	}
 
 	response.WriteHeader(http.StatusOK)
+}
+
+func (productHandler *ProductHandler) DeleteProduct(response http.ResponseWriter, request *http.Request) {
+	id := chi.URLParam(request, "id")
+	if id == "" {
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err := productHandler.ProductDB.FindByID(id)
+	if err != nil {
+		response.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	err = productHandler.ProductDB.Delete(id)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response.WriteHeader(http.StatusOK)
+}
+
+func (productHandler *ProductHandler) GetAllProducts(response http.ResponseWriter, request *http.Request) {
+	page := request.URL.Query().Get("page")
+	limit := request.URL.Query().Get("limit")
+	sort := request.URL.Query().Get("sort")
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 0
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		limitInt = 0
+	}
+
+	products, err := productHandler.ProductDB.FindAll(pageInt, limitInt, sort)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(products)
 }
