@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/jwtauth"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/dto"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/entity"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/infra/database"
 )
 
 type UserHandler struct {
-	UserDB database.UserInterface
+	UserDB        database.UserInterface
+	Jwt           *jwtauth.JWTAuth
+	JwtExperiesIn int
 }
 
 func NewUserHandler(userDB database.UserInterface) *UserHandler {
