@@ -40,7 +40,7 @@ func (userHandler *UserHandler) GetJWT(response http.ResponseWriter, request *ht
 		return
 	}
 
-	if !user.ValidatePassword(user.Password) {
+	if !user.ValidatePassword(userDTO.Password) {
 		response.WriteHeader(http.StatusUnauthorized)
 		return
 	}
