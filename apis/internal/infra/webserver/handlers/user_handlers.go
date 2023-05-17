@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/jwtauth"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/dto"
@@ -16,8 +17,48 @@ type UserHandler struct {
 	JwtExperiesIn int
 }
 
-func NewUserHandler(userDB database.UserInterface) *UserHandler {
-	return &UserHandler{UserDB: userDB}
+func NewUserHandler(userDB database.UserInterface, Jwt *jwtauth.JWTAuth, JwtExperiesIn int) *UserHandler {
+	return &UserHandler{
+		UserDB:        userDB,
+		Jwt:           Jwt,
+		JwtExperiesIn: JwtExperiesIn,
+	}
+}
+
+func (userHandler *UserHandler) GetJWT(response http.ResponseWriter, request *http.Request) {
+	var userDTO dto.GetJWTInput
+
+	err := json.NewDecoder(request.Body).Decode(&userDTO)
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	user, err := userHandler.UserDB.FindByEmail(userDTO.Email)
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if !user.ValidatePassword(user.Password) {
+		response.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	_, token, _ := userHandler.Jwt.Encode(map[string]interface{}{
+		"sub": user.ID.String(),
+		"exp": time.Now().Add(time.Second * time.Duration(userHandler.JwtExperiesIn)).Unix(),
+	})
+
+	accessToken := struct {
+		AccessToken string `json:"access_token`
+	}{
+		AccessToken: token,
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(accessToken)
 }
 
 func (userHandler *UserHandler) CreateUser(response http.ResponseWriter, request *http.Request) {
