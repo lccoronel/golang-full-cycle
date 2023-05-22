@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/jwtauth"
 	"github.com/lccoronel/golang-full-cycle/apis/configs"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/entity"
 	"github.com/lccoronel/golang-full-cycle/apis/internal/infra/database"
@@ -30,18 +31,35 @@ func main() {
 	productHandler := handlers.NewProductHandler(productDB)
 
 	userDB := database.NewUser(db)
-	userhandler := handlers.NewUserHandler(userDB, config.TokenAuth, config.JWTExpiresIn)
+	userhandler := handlers.NewUserHandler(userDB)
 
 	router := chi.NewRouter()
+	// router.Use(LogRequest)
 	router.Use(middleware.Logger)
-	router.Post("/products", productHandler.CreateProduct)
-	router.Get("/products/{id}", productHandler.GetProduct)
-	router.Get("/products", productHandler.GetAllProducts)
-	router.Put("/products/{id}", productHandler.UpdateProduct)
-	router.Delete("/products/{id}", productHandler.DeleteProduct)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.WithValue("jwt", config.TokenAuth))
+	router.Use(middleware.WithValue("JWTExperiesIn", config.JWTExpiresIn))
+
+	router.Route("/products", func(productsRouter chi.Router) {
+		productsRouter.Use(jwtauth.Verifier(config.TokenAuth))
+		productsRouter.Use(jwtauth.Authenticator)
+
+		productsRouter.Post("/", productHandler.CreateProduct)
+		productsRouter.Get("/{id}", productHandler.GetProduct)
+		productsRouter.Get("/", productHandler.GetAllProducts)
+		productsRouter.Put("/{id}", productHandler.UpdateProduct)
+		productsRouter.Delete("/{id}", productHandler.DeleteProduct)
+	})
 
 	router.Post("/users", userhandler.CreateUser)
 	router.Post("/users/generate_token", userhandler.GetJWT)
 
 	http.ListenAndServe(":8000", router)
 }
+
+// func LogRequest(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+// 		log.Printf("Request: %s %s", request.Method, request.URL.Path)
+// 		next.ServeHTTP(response, request)
+// 	})
+// }
