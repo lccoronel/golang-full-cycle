@@ -11,6 +11,10 @@ import (
 	"github.com/lccoronel/golang-full-cycle/apis/internal/infra/database"
 )
 
+type Error struct {
+	Message string `json:"message"`
+}
+
 type UserHandler struct {
 	UserDB database.UserInterface
 }
@@ -59,6 +63,16 @@ func (userHandler *UserHandler) GetJWT(response http.ResponseWriter, request *ht
 	json.NewEncoder(response).Encode(accessToken)
 }
 
+// Create user godoc
+// @Summary			Create user
+// @Description		Create user
+// @Tags			users
+// @Accept			json
+// @Produce			json
+// @Param			request		body		dto.CreateUserInput 	true	"user request"
+// @Success 		201
+// @Failure 		500			{object}	Error
+// @router			/users 		[post]
 func (userHandler *UserHandler) CreateUser(response http.ResponseWriter, request *http.Request) {
 	var userDTO dto.CreateUserInput
 
@@ -71,12 +85,16 @@ func (userHandler *UserHandler) CreateUser(response http.ResponseWriter, request
 	user, err := entity.NewUser(userDTO.Name, userDTO.Email, userDTO.Password)
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
+		error := Error{Message: err.Error()}
+		json.NewEncoder(response).Encode(error)
 		return
 	}
 
 	err = userHandler.UserDB.Create(user)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
+		error := Error{Message: err.Error()}
+		json.NewEncoder(response).Encode(error)
 		return
 	}
 
